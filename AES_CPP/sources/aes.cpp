@@ -1,6 +1,6 @@
 #include "aes.h"
 
-AES::AES(int Nk_tmp, int Nr_tmp, int Nb_tmp)
+AES::AES(int Nk_tmp = 8, int Nr_tmp = 14, int Nb_tmp = 4)
 {
     Nk = Nk_tmp;
     Nr = Nr_tmp;
@@ -38,8 +38,10 @@ void AES::KeyExpansion(w_type *key, w_type *w)
 
             for(int j = 0; j < Nb; j++)
             {
-                temp[j] = sbox[temp[j]] ^ Rcon[i/Nk];//do poprawy
+                temp[j] = sbox[temp[j]];
             }
+
+            temp[0] = temp[0] ^ Rcon[i/Nk]; // only the xor operation with Rcon for temp[0] (not as in the documentation) because we are operating on 4 x characters (not 32 bits)
 
         }
         else if(Nk > 6 && i % Nk == 4)
@@ -101,17 +103,17 @@ void AES::AddRoundKey(state_type  **state, w_type *w)
 void AES::MixColumns(state_type **state)
 {
 
-    state_type r[4];
-    state_type a[4];
-    state_type b[4];
+    state_type r[Nb];
+    state_type a[Nb];
+    state_type b[Nb];
     state_type h;
 
     for(int i = 0; i < Nb; i++)
     {
-       memcpy(r, state[i], 4*sizeof(state_type));
+       memcpy(r, state[i], Nb*sizeof(state_type));
 
     //Rijndael_MixColumns https://en.wikipedia.org/wiki/Rijndael_MixColumns
-        for(int c=0;c<4;c++)
+        for(int c = 0; c < 4; c++)
         {
             a[c] = r[c];
             h = (state_type)((state_type)r[c] >> 7);
@@ -124,7 +126,7 @@ void AES::MixColumns(state_type **state)
         r[2] = b[2] ^ a[1] ^ a[0] ^ b[3] ^ a[3];
         r[3] = b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0];
 
-        memcpy(state[i], r, 4*sizeof(state_type));
+        memcpy(state[i], r, Nb*sizeof(state_type));
     }
  }
 
@@ -170,7 +172,7 @@ void AES::Cipher(state_type *in, state_type *out, w_type *w)
         AES::SubBytes(state);
         AES::ShiftRows(state);
         AES::MixColumns(state);
-        AES::AddRoundKey(state, (w + round * Nb * Nb)); //I don't understand what values mean in pseudocode, I used the description from https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
+        AES::AddRoundKey(state, (w + round * Nb * Nb));
     }
 
     AES::SubBytes(state);
