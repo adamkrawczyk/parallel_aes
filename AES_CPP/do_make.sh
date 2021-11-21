@@ -32,4 +32,4 @@ echo '$(objects): $(sources)'>> makefile
 echo -e '\t$(CC) -c $(sources) $(LIBS) $@'>> makefile
 
 echo 'clean:' >> makefile
-echo -e '\t rm -f *.o makefile' $mainFile >> makefile
+echo -e '\t rm -f *.o'  >> makefile

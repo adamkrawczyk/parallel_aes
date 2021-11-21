@@ -29,21 +29,21 @@ static const uint8_t Rcon[11] = {
 
 class AES
 {
-private:
+protected:
     int Nk;
     int Nr;
     int Nb;
 
-    void AddRoundKey(state_type  **state, w_type *w);
-    void SubBytes(state_type **state);
-    void MixColumns(state_type **state);
-    void ShiftRows(state_type **state);
-    void ArrayTransformOneDim(state_type *in, state_type **state);
-    void ArrayTransformTwoDim(state_type *out, state_type **state);
-    void KeyExpansion(w_type *key, w_type *w);
+    virtual void AddRoundKey(state_type  **state, w_type *w);
+    virtual void SubBytes(state_type **state);
+    virtual void MixColumns(state_type **state);
+    virtual void ShiftRows(state_type **state);
+    virtual void ArrayTransformOneDim(state_type *in, state_type **state);
+    virtual void ArrayTransformTwoDim(state_type *out, state_type **state);
+    virtual void KeyExpansion(w_type *key, w_type *w);
 
 public:
     AES(int Nk_tmp, int Nr_tmp, int Nb_tmp);
-    void Cipher(state_type *in, state_type *out, w_type *w);
+    virtual void Cipher(state_type *in, state_type *out, w_type *w);
     
 };

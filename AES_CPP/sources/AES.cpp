@@ -1,6 +1,7 @@
-#include "aes.h"
+#include "AES.h"
 
-AES::AES(int Nk_tmp = 8, int Nr_tmp = 14, int Nb_tmp = 4)
+
+AES::AES(int Nk_tmp, int Nr_tmp, int Nb_tmp)
 {
     Nk = Nk_tmp;
     Nr = Nr_tmp;
