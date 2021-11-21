@@ -101,7 +101,34 @@ void AES::AddRoundKey(state_type  **state, w_type *w)
 void AES::MixColumns(state_type **state)
 {
 
-}
+    state_type r[4];
+    state_type a[4];
+    state_type b[4];
+    state_type h;
+
+    for(int i = 0; i < Nb; i++)
+    {
+       memcpy(r, state[i], 4*sizeof(state_type));
+
+    //Rijndael_MixColumns https://en.wikipedia.org/wiki/Rijndael_MixColumns
+        for(int c=0;c<4;c++)
+        {
+            a[c] = r[c];
+            h = (state_type)((state_type)r[c] >> 7);
+            b[c] = r[c] << 1;
+            b[c] ^= 0x1B & h;
+        }
+
+        r[0] = b[0] ^ a[3] ^ a[2] ^ b[1] ^ a[1];
+        r[1] = b[1] ^ a[0] ^ a[3] ^ b[2] ^ a[2];
+        r[2] = b[2] ^ a[1] ^ a[0] ^ b[3] ^ a[3];
+        r[3] = b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0];
+
+        memcpy(state[i], r, 4*sizeof(state_type));
+    }
+ }
+
+
 
 void AES::ArrayTransformOneDim(state_type *in, state_type **state)
 {

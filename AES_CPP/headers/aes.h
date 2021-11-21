@@ -1,5 +1,6 @@
 #include<iostream>
 #include <stdint.h>
+#include <string.h>
 
 typedef uint8_t state_type;
 typedef uint8_t w_type;
