@@ -1,6 +1,5 @@
 #include "AES.h"
 
-
 AES::AES(int Nk_tmp, int Nr_tmp, int Nb_tmp)
 {
     Nk = Nk_tmp;
