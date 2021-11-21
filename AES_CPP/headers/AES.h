@@ -41,9 +41,10 @@ protected:
     virtual void ArrayTransformOneDim(state_type *in, state_type **state);
     virtual void ArrayTransformTwoDim(state_type *out, state_type **state);
     virtual void KeyExpansion(w_type *key, w_type *w);
+    virtual void Cipher(state_type *in, state_type *out, w_type *w);
 
 public:
     AES(int Nk_tmp, int Nr_tmp, int Nb_tmp);
-    virtual void Cipher(state_type *in, state_type *out, w_type *w);
+    
     
 };

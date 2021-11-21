@@ -65,6 +65,34 @@ void AES_CBC::SubBytes(state_type **state)
 
 }
 
+void AES_CBC::Cipher(state_type *in, state_type *out, w_type *w)
+{
+    state_type **state = (state_type**)malloc(Nb * sizeof(state_type*));
+
+    for (int i = 0; i < Nb; i++)
+    {
+        state[i] = (state_type*)malloc(Nb * sizeof(state_type));
+    }
+
+    AES::ArrayTransformOneDim(in, state);
+
+    AES::AddRoundKey(state, w); 
+
+    for(int round = 1; round <= Nr - 1; round++)
+    {
+        AES_CBC::SubBytes(state);
+        AES::ShiftRows(state);
+        AES::MixColumns(state);
+        AES::AddRoundKey(state, (w + round * Nb * Nb));
+    }
+
+    AES::SubBytes(state);
+    AES::ShiftRows(state);
+    AES::AddRoundKey(state, (w + Nr * Nb * Nb));
+
+    ArrayTransformTwoDim(out, state);
+
+}
 
 void AES_CBC::AES_CBC_encript(state_type *in, state_type *out, w_type *w, int len, state_type *iv)
 {
