@@ -4,6 +4,9 @@
 
 int main()
 {
-    AES tmp(8, 14, 4); 
+    AES_ECB ecb_test; 
+
+
+    return 0;
 
 }

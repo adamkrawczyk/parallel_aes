@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#define Nk 8
+#define Nr 14
+#define Nb 4
+
 typedef uint8_t state_type;
 typedef uint8_t w_type;
 
@@ -49,9 +53,7 @@ const uint8_t rsbox[256] = {
 class AES
 {
 protected:
-    int Nk;
-    int Nr;
-    int Nb;
+  
 
     virtual void AddRoundKey(state_type  **state, w_type *w);
     virtual void SubBytes(state_type **state);
@@ -59,11 +61,10 @@ protected:
     virtual void ShiftRows(state_type **state);
     virtual void ArrayTransformOneDim(state_type *in, state_type **state);
     virtual void ArrayTransformTwoDim(state_type *out, state_type **state);
-    virtual void KeyExpansion(w_type *key, w_type *w);
     virtual void Cipher(state_type *in, state_type *out, w_type *w);
 
 public:
-    AES(int Nk_tmp, int Nr_tmp, int Nb_tmp);
+    virtual void KeyExpansion(w_type *key, w_type *w);
     
     
 };
