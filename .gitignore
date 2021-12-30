@@ -1,3 +1,5 @@
 /.idea/
 /AES_CPP/AES_CPP/build/
 /.vscode/
+build/
+bin/libAES_CPP.a
