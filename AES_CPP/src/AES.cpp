@@ -1,13 +1,60 @@
 #include "AES.h"
 
-AES::AES(int Nk_tmp, int Nr_tmp, int Nb_tmp)
+AES::AES(AESType aes_type)
+: Nb(aes_type.Nb), Nk(aes_type.Nk), Nr(aes_type.Nr)
 {
-  Nk = Nk_tmp;
-  Nr = Nr_tmp;
-  Nb = Nb_tmp;
 }
 
-void AES::KeyExpansion(w_type * key, w_type * w)
+void AES::cipher(state_type * in, state_type * out, w_type * w)
+{
+  state_type ** state = (state_type **)malloc(Nb * sizeof(state_type *));
+
+  for (int i = 0; i < Nb; i++) {
+    state[i] = (state_type *)malloc(Nb * sizeof(state_type));
+  }
+
+  AES::arrayTransformOneDim(in, state);
+
+  AES::addRoundKey(state, w);
+
+  for (int round = 1; round <= Nr - 1; round++) {
+    AES::subBytes(state);
+    AES::shiftRows(state);
+    AES::mixColumns(state);
+    AES::addRoundKey(state, (w + round * Nb * Nb));
+  }
+
+  AES::subBytes(state);
+  AES::shiftRows(state);
+  AES::addRoundKey(state, (w + Nr * Nb * Nb));
+
+  arrayTransformTwoDim(out, state);
+
+}
+
+
+void AES::invCipher(state_type * in, state_type * out, w_type * w)
+{
+  state_type ** state = (state_type **)malloc(Nb * sizeof(state_type *));
+
+  for (int i = 0; i < Nb; i++) {
+    state[i] = (state_type *)malloc(Nb * sizeof(state_type));
+  }
+
+  addRoundKey(state, (w + (Nr + 1) * Nb - 1 ));
+  for (unsigned int round = Nr - 1; round <= 1; round--) {
+    invShiftRows(state) // See Sec. 5.3.1
+    invSubBytes(state) // See Sec. 5.3.2
+    addRoundKey(state, w[round * Nb, (round + 1) * Nb - 1])
+    invMixColumns(state) // See Sec. 5.3.3
+  }
+  invShiftRows(state)
+  invSubBytes(state)
+  addRoundKey(state, w[0, Nb - 1])
+  out = state
+}
+
+void AES::keyExpansion(w_type * key, w_type * w)
 {
   w_type * temp = (w_type *)malloc(Nb * sizeof(w_type *));
 
@@ -50,7 +97,7 @@ void AES::KeyExpansion(w_type * key, w_type * w)
   }
 }
 
-void AES::SubBytes(state_type ** state)
+void AES::subBytes(state_type ** state)
 {
   for (int i = 0; i < Nb; i++) {
     for (int j = 0; j < Nb; j++) {
@@ -60,7 +107,7 @@ void AES::SubBytes(state_type ** state)
 
 }
 
-void AES::ShiftRows(state_type ** state)
+void AES::shiftRows(state_type ** state)
 {
   for (int numberOfShifts = 0; numberOfShifts < Nb; numberOfShifts++) {
     for (int j = 0; j < numberOfShifts; j++) {
@@ -73,7 +120,7 @@ void AES::ShiftRows(state_type ** state)
   }
 }
 
-void AES::AddRoundKey(state_type ** state, w_type * w)
+void AES::addRoundKey(state_type ** state, w_type * w)
 {
   for (int j = 0; j < Nb; j++) {
     for (int i = 0; i < Nb; i++) {
@@ -83,18 +130,18 @@ void AES::AddRoundKey(state_type ** state, w_type * w)
   }
 }
 
-void AES::MixColumns(state_type ** state)
+void AES::mixColumns(state_type ** state)
 {
 
-  state_type r[Nb];
-  state_type a[Nb];
-  state_type b[Nb];
+  state_type * r = new state_type[Nb];
+  state_type * a = new state_type[Nb];
+  state_type * b = new state_type[Nb];
   state_type h;
 
   for (int i = 0; i < Nb; i++) {
     memcpy(r, state[i], Nb * sizeof(state_type));
 
-    //Rijndael_MixColumns https://en.wikipedia.org/wiki/Rijndael_MixColumns
+    //Rijndael_mixColumns https://en.wikipedia.org/wiki/Rijndael_mixColumns
     for (int c = 0; c < 4; c++) {
       a[c] = r[c];
       h = (state_type)((state_type)r[c] >> 7);
@@ -112,7 +159,7 @@ void AES::MixColumns(state_type ** state)
 }
 
 
-void AES::ArrayTransformOneDim(state_type * in, state_type ** state)
+void AES::arrayTransformOneDim(state_type * in, state_type ** state)
 {
   for (int i = 0; i < Nb; i++) {
     for (int j = 0; j < Nb; j++) {
@@ -121,38 +168,11 @@ void AES::ArrayTransformOneDim(state_type * in, state_type ** state)
   }
 }
 
-void AES::ArrayTransformTwoDim(state_type * out, state_type ** state)
+void AES::arrayTransformTwoDim(state_type * out, state_type ** state)
 {
   for (int i = 0; i < Nb; i++) {
     for (int j = 0; j < Nb; j++) {
       out[i + Nb * j] = state[i][j];
     }
   }
-}
-
-void AES::Cipher(state_type * in, state_type * out, w_type * w)
-{
-  state_type ** state = (state_type **)malloc(Nb * sizeof(state_type *));
-
-  for (int i = 0; i < Nb; i++) {
-    state[i] = (state_type *)malloc(Nb * sizeof(state_type));
-  }
-
-  AES::ArrayTransformOneDim(in, state);
-
-  AES::AddRoundKey(state, w);
-
-  for (int round = 1; round <= Nr - 1; round++) {
-    AES::SubBytes(state);
-    AES::ShiftRows(state);
-    AES::MixColumns(state);
-    AES::AddRoundKey(state, (w + round * Nb * Nb));
-  }
-
-  AES::SubBytes(state);
-  AES::ShiftRows(state);
-  AES::AddRoundKey(state, (w + Nr * Nb * Nb));
-
-  ArrayTransformTwoDim(out, state);
-
 }

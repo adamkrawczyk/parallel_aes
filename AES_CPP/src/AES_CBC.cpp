@@ -1,6 +1,6 @@
 #include "AES_CBC.h"
 
-void AES_CBC::KeyExpansion(w_type *key, w_type *w)
+void AES_CBC::keyExpansion(w_type *key, w_type *w)
 {
     w_type *temp = (w_type*)malloc(Nb * sizeof(w_type*));
 
@@ -53,7 +53,7 @@ void AES_CBC::KeyExpansion(w_type *key, w_type *w)
     }
 }
 
-void AES_CBC::SubBytes(state_type **state)
+void AES_CBC::subBytes(state_type **state)
 {
     for(int i = 0; i < Nb; i++)
     {
@@ -65,7 +65,7 @@ void AES_CBC::SubBytes(state_type **state)
 
 }
 
-void AES_CBC::Cipher(state_type *in, state_type *out, w_type *w)
+void AES_CBC::cipher(state_type *in, state_type *out, w_type *w)
 {
     state_type **state = (state_type**)malloc(Nb * sizeof(state_type*));
 
@@ -74,27 +74,27 @@ void AES_CBC::Cipher(state_type *in, state_type *out, w_type *w)
         state[i] = (state_type*)malloc(Nb * sizeof(state_type));
     }
 
-    AES::ArrayTransformOneDim(in, state);
+    AES::arrayTransformOneDim(in, state);
 
-    AES::AddRoundKey(state, w); 
+    AES::addRoundKey(state, w); 
 
     for(int round = 1; round <= Nr - 1; round++)
     {
-        AES_CBC::SubBytes(state);
-        AES::ShiftRows(state);
-        AES::MixColumns(state);
-        AES::AddRoundKey(state, (w + round * Nb * Nb));
+        AES_CBC::subBytes(state);
+        AES::shiftRows(state);
+        AES::mixColumns(state);
+        AES::addRoundKey(state, (w + round * Nb * Nb));
     }
 
-    AES::SubBytes(state);
-    AES::ShiftRows(state);
-    AES::AddRoundKey(state, (w + Nr * Nb * Nb));
+    AES::subBytes(state);
+    AES::shiftRows(state);
+    AES::addRoundKey(state, (w + Nr * Nb * Nb));
 
-    ArrayTransformTwoDim(out, state);
+    arrayTransformTwoDim(out, state);
 
 }
 
-void AES_CBC::AES_CBC_encript(state_type *in, state_type *out, w_type *w, int len, state_type *iv)
+void AES_CBC::AesCbcEncript(state_type *in, state_type *out, w_type *w, int len, state_type *iv)
 {
 
     for (int i = 0; i < len; i += 16)
@@ -103,7 +103,7 @@ void AES_CBC::AES_CBC_encript(state_type *in, state_type *out, w_type *w, int le
         {
             in[i] ^= iv[e];
         }
-        AES::Cipher(in, out, w); 
+        AES::cipher(in, out, w); 
 
         iv = out;
         in += 16;

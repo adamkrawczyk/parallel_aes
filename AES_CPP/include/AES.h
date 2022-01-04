@@ -7,6 +7,47 @@
 typedef uint8_t state_type;
 typedef uint8_t w_type;
 
+enum AESKeyLength
+{
+  AES128,
+  AES192,
+  AES256
+};
+
+struct AESType
+{
+  int Nk;  // Number  of  32-bit  words  comprising  the  Cipher  Key
+  int Nr;  // Number  of  rounds
+  int Nb;  // Number  of  columns  (32-bit  words)
+
+  AESType(AESKeyLength key_len)
+  {
+    switch (key_len) {
+      case AES128:
+        Nb = 4;
+        Nk = 4;
+        Nr = 10;
+        break;
+      case AES192:
+        Nb = 4;
+        Nk = 6;
+        Nr = 12;
+        break;
+      case AES256:
+        Nb = 4;
+        Nk = 8;
+        Nr = 14;
+        break;
+      default:
+        Nb = 4;
+        Nk = 8;
+        Nr = 14;
+        break;
+    }
+  }
+
+};
+
 const uint8_t sbox[256] = {
   0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
   0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
@@ -49,19 +90,20 @@ const uint8_t rsbox[256] = {
 class AES
 {
 public:
-  AES(int Nk_tmp, int Nr_tmp, int Nb_tmp);
-  int Nk;   // odpowiednia kombinacja dla odpowiedniej dlugosci klucza
-  int Nr;
-  int Nb;
+  AES(AESType aes_type);
 
 protected:
-  virtual void AddRoundKey(state_type ** state, w_type * w);
-  virtual void SubBytes(state_type ** state);
-  virtual void MixColumns(state_type ** state);
-  virtual void ShiftRows(state_type ** state);
-  virtual void ArrayTransformOneDim(state_type * in, state_type ** state);
-  virtual void ArrayTransformTwoDim(state_type * out, state_type ** state);
-  virtual void KeyExpansion(w_type * key, w_type * w);
-  virtual void Cipher(state_type * in, state_type * out, w_type * w);
+  virtual void addRoundKey(state_type ** state, w_type * w);
+  virtual void subBytes(state_type ** state);
+  virtual void mixColumns(state_type ** state);
+  virtual void shiftRows(state_type ** state);
+  virtual void arrayTransformOneDim(state_type * in, state_type ** state);
+  virtual void arrayTransformTwoDim(state_type * out, state_type ** state);
+  virtual void keyExpansion(w_type * key, w_type * w);
+  virtual void cipher(state_type * in, state_type * out, w_type * w);
+  virtual void invCipher(state_type * in, state_type * out, w_type * w);
 
+  const int Nb;
+  const int Nk;
+  const int Nr;
 };
