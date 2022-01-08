@@ -5,11 +5,8 @@ void keyExpansion(w_type key[KEY_LEN], w_type w[KEY_ROUND]) {
 
 	int i = 0;
 
-	for(i = 0; i < Nb * Nk; i++)
-	{
-		w = key;
-	}
-
+	memcpy(w, key, Nb * Nk * sizeof(w_type));
+	
 	i = Nk;
 
 	while (i < Nb * (Nr + 1)) {
