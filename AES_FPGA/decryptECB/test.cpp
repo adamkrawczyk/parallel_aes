@@ -23,9 +23,7 @@ int main() {
 
 	if (0 == memcmp((char*) out, (char*) plain, 16)) {
 		printf("SUCCESS!\n");
-		return (0);
 	} else {
 		printf("FAILURE!\n");
-		return (1);
 	}
 }

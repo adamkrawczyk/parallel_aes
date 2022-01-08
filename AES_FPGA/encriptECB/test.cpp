@@ -15,10 +15,8 @@ int main() {
 
 	state_type out[OUT_LEN];
 
-	for(int i = 0; i < 20; i++)
-	{
-		encriptECB(plain, out, key);
-	}
+	encriptECB(plain, out, key);
+	
 
 	for (int i = 0; i < OUT_LEN; i++) {
 		printf("%02x ", (unsigned char) out[i]);
@@ -26,9 +24,7 @@ int main() {
 
 	if (0 == memcmp((char*) out, (char*) right, 16)) {
 		printf("SUCCESS!\n");
-		return (0);
 	} else {
 		printf("FAILURE!\n");
-		return (1);
 	}
 }
