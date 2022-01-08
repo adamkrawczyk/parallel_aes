@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 typedef uint8_t state_type;
 typedef uint8_t w_type;
@@ -12,6 +13,8 @@ typedef uint8_t w_type;
 #define OUT_LEN 16
 #define KEY_LEN 32
 #define KEY_ROUND 240
+
+#define BLOCK_SIZE 80
 
 const uint8_t sbox[256] = { 0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5,
 		0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76, 0xca, 0x82, 0xc9, 0x7d,
