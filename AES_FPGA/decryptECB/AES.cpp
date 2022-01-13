@@ -209,6 +209,7 @@ void invCipher(state_type in[IN_LEN], state_type out[OUT_LEN],
 
 void decryptECB(state_type in[IN_LEN], state_type out[OUT_LEN],
 		w_type key[KEY_LEN]) {
+#pragma HLS INTERFACE ap_ctrl_none port=return
 #pragma HLS INTERFACE axis register both port=out
 #pragma HLS ARRAY_RESHAPE variable=out complete dim=1
 #pragma HLS INTERFACE axis register both port=key
