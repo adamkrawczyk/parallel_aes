@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <fstream>
+#include <iostream>
+#include <experimental/filesystem>
 
 #include "helper_cuda.h"
 
