@@ -1,51 +1,52 @@
 #include "AES.h"
 
-__device__
-void keyExpansion(w_type key[KEY_LEN], w_type w[KEY_ROUND]) {
-	w_type temp[Nb];
 
-	int i = 0;
+// __device__
+// void keyExpansion(w_type key[KEY_LEN], w_type w[KEY_ROUND]) {
+// 	w_type temp[Nb];
 
-	for(i = 0; i < Nb * Nk; i++)
-	{
-		w[i] = key[i];
-	}
+// 	int i = 0;
 
-	i = Nk;
+// 	for(i = 0; i < Nb * Nk; i++)
+// 	{
+// 		w[i] = key[i];
+// 	}
 
-	while (i < Nb * (Nr + 1)) {
-		for (int j = 0; j < 4; j++) {
-			temp[j] = w[(i - 1) * 4 + j];
-		}
+// 	i = Nk;
 
-		if (i % Nk == 0) {
-			state_type tmp = temp[0];
-			for (int j = 0; j < Nb - 1; j++) {
-				temp[j] = temp[j + 1];
-			}
+// 	while (i < Nb * (Nr + 1)) {
+// 		for (int j = 0; j < 4; j++) {
+// 			temp[j] = w[(i - 1) * 4 + j];
+// 		}
 
-			temp[Nb - 1] = tmp;
+// 		if (i % Nk == 0) {
+// 			state_type tmp = temp[0];
+// 			for (int j = 0; j < Nb - 1; j++) {
+// 				temp[j] = temp[j + 1];
+// 			}
 
-			for (int j = 0; j < Nb; j++) {
-				temp[j] = sbox[temp[j]];
-			}
+// 			temp[Nb - 1] = tmp;
 
-			temp[0] = temp[0] ^ Rcon[i / Nk]; // only the xor operation with Rcon for temp[0] (not as in the documentation) because we are operating on 4 x characters (not 32 bits)
+// 			for (int j = 0; j < Nb; j++) {
+// 				temp[j] = sbox[temp[j]];
+// 			}
 
-		} else if (Nk > 6 && i % Nk == 4) {
-			for (int j = 0; j < Nb; j++) {
-				temp[j] = sbox[temp[j]];
-			}
-		}
+// 			temp[0] = temp[0] ^ Rcon[i / Nk]; // only the xor operation with Rcon for temp[0] (not as in the documentation) because we are operating on 4 x characters (not 32 bits)
 
-        __syncthreads();
-		for (int j = 0; j < Nb; j++) {
-			w[j + i * Nb] = w[(i - Nk) * Nb + j] ^ temp[j];
-		}
+// 		} else if (Nk > 6 && i % Nk == 4) {
+// 			for (int j = 0; j < Nb; j++) {
+// 				temp[j] = sbox[temp[j]];
+// 			}
+// 		}
 
-		i = i + 1;
-	}
-}
+//         __syncthreads();
+// 		for (int j = 0; j < Nb; j++) {
+// 			w[j + i * Nb] = w[(i - Nk) * Nb + j] ^ temp[j];
+// 		}
+
+// 		i = i + 1;
+// 	}
+// }
 
 __device__
 void subBytes(state_type state[Nb][Nb]) {
