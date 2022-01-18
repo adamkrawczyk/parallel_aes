@@ -72,9 +72,22 @@ inline uint8_t rsbox[256] = { 0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38,
 		0x83, 0x53, 0x99, 0x61, 0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26,
 		0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d };
 
-// __device__
-// void encriptECB(state_type in[IN_LEN], state_type out[OUT_LEN],
-// 		w_type key[KEY_LEN]);
 __device__ void keyExpansion(w_type key[KEY_LEN], w_type w[KEY_ROUND]);
+
+__device__ void subBytes(state_type state[Nb][Nb]);
+
+__device__ void shiftRows(state_type state[Nb][Nb]);
+
+__device__ void addRoundKey(state_type state[Nb][Nb], w_type w[KEY_ROUND]);
+
+__device__ void mixColumns(state_type state[Nb][Nb]);
+
+__device__ void arrayTransformOneDim(state_type in[IN_LEN], state_type state[Nb][Nb]);
+
+__device__ void arrayTransformTwoDim(state_type out[OUT_LEN], state_type state[Nb][Nb]);
+
+__device__ void cipher(state_type in[IN_LEN], state_type out[OUT_LEN], w_type w[KEY_ROUND]);
+
+__device__ void encriptECB(state_type in[IN_LEN], state_type out[OUT_LEN], w_type key[KEY_LEN]);
 
 #endif // __AES_H__
