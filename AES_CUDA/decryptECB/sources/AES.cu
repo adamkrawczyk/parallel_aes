@@ -1,5 +1,6 @@
 #include "AES.h"
 
+__device__
 void keyExpansion(w_type key[KEY_LEN], w_type w[KEY_ROUND]) {
 	w_type temp[Nb];
 
@@ -41,11 +42,13 @@ void keyExpansion(w_type key[KEY_LEN], w_type w[KEY_ROUND]) {
 	}
 }
 
+__device__
 static uint8_t xtime(uint8_t x)
 {
   return ((x<<1) ^ (((x>>7) & 1) * 0x1b));
 }
 
+__device__
 void invSubBytes(state_type state[Nb][Nb]) {
 	for (int i = 0; i < Nb; i++) {
 		for (int j = 0; j < Nb; j++) {
@@ -54,6 +57,7 @@ void invSubBytes(state_type state[Nb][Nb]) {
 	}
 }
 
+__device__
 void invShiftRows(state_type state[Nb][Nb]) {
 	for (int numberOfShifts = 1; numberOfShifts < Nb; numberOfShifts++) {
 		for (int j = 0; j < Nb - numberOfShifts; j++) {
@@ -66,6 +70,7 @@ void invShiftRows(state_type state[Nb][Nb]) {
 	}
 }
 
+__device__
 void addRoundKey(state_type state[Nb][Nb], w_type w[KEY_ROUND]) {
 	for (int j = 0; j < Nb; j++) {
 		for (int i = 0; i < Nb; i++) {
@@ -75,6 +80,7 @@ void addRoundKey(state_type state[Nb][Nb], w_type w[KEY_ROUND]) {
 	}
 }
 
+__device__
 void invMixColumns(state_type state[Nb][Nb]) {
 
 	state_type u;
@@ -93,7 +99,6 @@ void invMixColumns(state_type state[Nb][Nb]) {
 	state_type r[Nb];
 	state_type a[Nb];
 	state_type b[Nb];
-	state_type h;
 
 	for (int i = 0; i < Nb; i++) {
 		memcpy(r, state[i], Nb * sizeof(state_type));
@@ -114,6 +119,7 @@ void invMixColumns(state_type state[Nb][Nb]) {
 	}
 }
 
+__device__
 void arrayTransformOneDim(state_type in[IN_LEN], state_type state[Nb][Nb]) {
 	for (int i = 0; i < Nb; i++) {
 		for (int j = 0; j < Nb; j++) {
@@ -122,6 +128,7 @@ void arrayTransformOneDim(state_type in[IN_LEN], state_type state[Nb][Nb]) {
 	}
 }
 
+__device__
 void arrayTransformTwoDim(state_type out[OUT_LEN], state_type state[Nb][Nb]) {
 	for (int i = 0; i < Nb; i++) {
 		for (int j = 0; j < Nb; j++) {
@@ -130,6 +137,7 @@ void arrayTransformTwoDim(state_type out[OUT_LEN], state_type state[Nb][Nb]) {
 	}
 }
 
+__device__
 void invCipher(state_type in[IN_LEN], state_type out[OUT_LEN],
 		w_type w[KEY_ROUND]) {
 	state_type state[Nb][Nb];
@@ -153,10 +161,5 @@ void invCipher(state_type in[IN_LEN], state_type out[OUT_LEN],
 
 }
 
-void decryptECB(state_type in[IN_LEN], state_type out[OUT_LEN],
-		w_type key[KEY_LEN]) {
-	w_type w[KEY_ROUND];
-	keyExpansion(key, w);
-	invCipher(in, out, w);
-}
+
 
