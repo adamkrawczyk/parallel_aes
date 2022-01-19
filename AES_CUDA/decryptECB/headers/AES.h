@@ -2,7 +2,10 @@
 #define __AES_H__
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
+#include <iostream>
+#include <experimental/filesystem>
 
 #include "helper_cuda.h"
 

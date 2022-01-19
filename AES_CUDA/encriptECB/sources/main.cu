@@ -10,8 +10,8 @@ static void ecb_encrypt_kernel(state_type* in, state_type* out, w_type* key)
 
 int main() {
 	std::ifstream in_file;
-	in_file.open("./../data/in_str.txt", std::ios::binary);
-    std::size_t file_size = std::experimental::filesystem::file_size("./../data/in_str.txt");
+	in_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/encriptECB/data/in_str.txt", std::ios::binary);
+    std::size_t file_size = std::experimental::filesystem::file_size("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/encriptECB/data/in_str.txt");
     int padding = file_size % 16;
     char plain[file_size+padding];
 
@@ -50,6 +50,10 @@ int main() {
     float elapsedTime;
     cudaEvent_t start, stop; // pomiar czasu wykonania j?dra
 
+    for(int i=0; i< file_size;i++)
+        std::cout<<(int)plain[i]<<" ";
+    std::cout<<"\n";
+
     checkCudaErrors(cudaSetDevice(0));
 
     checkCudaErrors(cudaEventCreate(&start));
@@ -67,8 +71,12 @@ int main() {
     
     checkCudaErrors(cudaMemcpy(out, out_gpu, sizeof(uint8_t)*(file_size+padding), cudaMemcpyDeviceToHost));
 
+    for(int i=0; i< file_size;i++)
+        std::cout<<(int)out[i]<<" ";
+    std::cout<<"\n";
+
 	std::ofstream out_file;
-    out_file.open("./../data/out_str.txt", std::ios::binary);
+    out_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/encriptECB/data/out_str.txt", std::ios::binary);
     out_file.write((char *)out, file_size);
     out_file.close();
 
