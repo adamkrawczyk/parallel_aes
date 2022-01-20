@@ -3,8 +3,6 @@
 __global__
 static void ecb_encrypt_kernel(state_type* in, state_type* out, w_type* key)
 {
-
-    // printf("hello from thread %d\n", threadIdx.x);
     encriptECB(in+threadIdx.x*16, out+threadIdx.x*16, key);
 }
 
@@ -12,8 +10,9 @@ int main() {
 	std::ifstream in_file;
 	in_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/encriptECB/data/plain.txt", std::ios::binary);
     std::size_t file_size = std::experimental::filesystem::file_size("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/encriptECB/data/plain.txt");
-    int padding = file_size % 16;
+    int padding = 16 - (file_size % 16);
     char plain[file_size+padding];
+    char padding_char[3] = "  ";
 
 	std::string text;
 	if(!in_file.is_open())
@@ -25,30 +24,16 @@ int main() {
 	in_file.close();
 
     // fill padding with zeros
-    for(int i=0;i<padding;i++)
+    for(int i=0;i<padding-1;i++)
     {
-        plain[file_size+i] = 0x00;
+        plain[file_size+i] = 0;
     }
+    plain[file_size+padding-1] = padding;
 
 	uint8_t key[] = { 0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe, 0x2b,
         0x73, 0xae, 0xf0, 0x85, 0x7d, 0x77, 0x81, 0x1f, 0x35, 0x2c, 0x07,
         0x3b, 0x61, 0x08, 0xd7, 0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf,
         0xf4 };
-    // uint8_t right_base[] = { 0xf3, 0xee, 0xd1, 0xbd, 0xb5, 0xd2, 0xa0, 0x3c, 0x06,
-    //     0x4b, 0x5a, 0x7e, 0x3d, 0xb1, 0x81, 0xf8};
-    // uint8_t plain[] = {0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9,
-    //     0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a};
-    // uint8_t right[file_size+padding]; 
-
-    // uint8_t plain[file_size+padding]; 
-
-    // for (int i = 0; i < BLOCK_SIZE; i++)
-    // {
-    //     memcpy(right+i*16*sizeof(uint8_t), right_base, 16*sizeof(uint8_t));
-    //     memcpy(plain+i*16*sizeof(uint8_t), plain_base, 16*sizeof(uint8_t));
-    // }
-
-
 
 	state_type out[file_size+padding];
 
@@ -56,9 +41,9 @@ int main() {
     float elapsedTime;
     cudaEvent_t start, stop; // pomiar czasu wykonania j?dra
 
-    for(int i=0; i< file_size;i++)
+    for(int i=0; i< file_size+padding;i++)
     {
-        std::cout<<(uint8_t)plain[i]<<" ";
+        std::cout<<(int)plain[i]<<" ";
 
     }
     std::cout<<"\n";
@@ -75,41 +60,34 @@ int main() {
     checkCudaErrors(cudaMemcpy(key_gpu, key, sizeof(uint8_t)*32, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(plain_gpu, plain, sizeof(uint8_t)*(file_size+padding), cudaMemcpyHostToDevice));
     
-    ecb_encrypt_kernel<<<1, file_size/16>>>(plain_gpu, out_gpu, key_gpu);
+    ecb_encrypt_kernel<<<1, (file_size+padding)/16>>>(plain_gpu, out_gpu, key_gpu);
     checkCudaErrors(cudaGetLastError());
     
     checkCudaErrors(cudaMemcpy(out, out_gpu, sizeof(uint8_t)*(file_size+padding), cudaMemcpyDeviceToHost));
+
+    checkCudaErrors(cudaEventRecord(stop, 0));
 
     for(int i=0; i< file_size+padding;i++)
     {
         std::cout<<(int)out[i]<<" ";
         // itoa(out[i], plain[i], 10);
     }
-    std::cout<<"\n";
-
+    
 	std::ofstream out_file;
     out_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/encriptECB/data/encrypted.txt", std::ios::binary);
-    out_file.write((char *)out, file_size);
+    // write padding size
+    sprintf(padding_char, "%d", padding);
+    std::cout<<"\n"<<"padding is "<<padding_char[0]<<padding_char[1]<<", full file size is "<<file_size+padding<<"\n";
+    // out_file.write(padding_char, 2);
+    out_file.write((char *)out, file_size+padding);
     out_file.close();
 
-    checkCudaErrors(cudaEventRecord(stop, 0));
     checkCudaErrors(cudaEventSynchronize(stop));
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     checkCudaErrors(cudaEventDestroy(start));
     checkCudaErrors(cudaEventDestroy(stop));
 
-
-	// for (int i = 0; i < OUT_LEN*3; i++) {
-	// 	printf("%02x ", (unsigned char) out[i]);
-	// }
-
-	// if (0 == memcmp((char*) out, (char*) right, 16*BLOCK_SIZE)) {
-	// 	printf("SUCCESS!\n");
-	// } else {
-	// 	printf("FAILURE!\n");
-	// }
-
-    printf("GPU (kernel) time = %.3f ms\n", elapsedTime);
+    printf("GPU time = %.3f ms\n", elapsedTime);
 
     checkCudaErrors(cudaFree(key_gpu));
     checkCudaErrors(cudaFree(plain_gpu));
