@@ -1,15 +1,6 @@
 #include "AES.h"
 #include <stdio.h>
-#include <time.h> 
-typedef struct timespec app_timer_t;
-#define timer(t_ptr) clock_gettime(CLOCK_MONOTONIC, t_ptr)
 
-void elapsed_time(app_timer_t start, app_timer_t stop) {
-  double etime;
-  etime = 1e+3 * (stop.tv_sec - start.tv_sec) +
-    1e-6 * (stop.tv_nsec - start.tv_nsec);
-  printf("CPU (total!) time = %.3f ns\n", etime*1e+6);
-}
 
 int main() {
 
@@ -25,15 +16,7 @@ int main() {
 
 	state_type out[OUT_LEN];
 
-	app_timer_t start, stop;
-
-	timer( & start);
-
 	encriptECB(plain, out, key);
-
-	timer( & stop);
-
-	elapsed_time(start, stop);
 
 	for (int i = 0; i < OUT_LEN; i++) {
 		printf("%02x ", (unsigned char) out[i]);

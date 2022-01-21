@@ -1,4 +1,8 @@
 #include "AES.h"
+#include <time.h> 
+#include <stdio.h>
+typedef struct timespec app_timer_t;
+#define timer(t_ptr) clock_gettime(CLOCK_MONOTONIC, t_ptr)
 
 void keyExpansion(w_type key[KEY_LEN], w_type w[KEY_ROUND]) {
 	w_type temp[Nb];
@@ -141,11 +145,23 @@ void cipher(state_type in[IN_LEN], state_type out[OUT_LEN],
 
 }
 
+void elapsed_time(app_timer_t start, app_timer_t stop) {
+  double etime;
+  etime = 1e+3 * (stop.tv_sec - start.tv_sec) +
+    1e-6 * (stop.tv_nsec - start.tv_nsec);
+  printf("CPU (total!) time = %.3f ns\n", etime*1e+6);
+}
+
 void encriptECB(state_type in[IN_LEN], state_type out[OUT_LEN],
 		w_type key[KEY_LEN]) {
-#pragma HLS PIPELINE
+
+	app_timer_t start, stop;
+
 	w_type w[KEY_ROUND];
 	keyExpansion(key, w);
+	timer( & start);
 	cipher(in, out, w);
+	timer( & stop);
+	elapsed_time(start, stop);
 }
 
