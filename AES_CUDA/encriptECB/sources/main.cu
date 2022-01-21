@@ -1,18 +1,24 @@
 #include "AES.h"
 
 __global__
-static void ecb_encrypt_kernel(state_type* in, state_type* out, w_type* key)
+static void ecb_encrypt_kernel(state_type* in, state_type* out, w_type* key, int size)
 {
-    encriptECB(in+threadIdx.x*16, out+threadIdx.x*16, key);
+    int idx = threadIdx.x+blockIdx.x*blockDim.x;
+    if (idx < size){
+
+        encriptECB(in+idx*16, out+idx*16, key);
+    }
 }
 
 int main() {
 	std::ifstream in_file;
-	in_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/encriptECB/data/plain.txt", std::ios::binary);
-    std::size_t file_size = std::experimental::filesystem::file_size("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/encriptECB/data/plain.txt");
-    int padding = 16 - (file_size % 16);
+    char in_file_path[] = "/home/silver/My-projects/CUDA/samples/0_Simple/aes_project/AES_CUDA/encriptECB/data/screen.png";
+	in_file.open(in_file_path, std::ios::binary);
+    std::size_t file_size = std::experimental::filesystem::file_size(in_file_path);
+    int padding = 16 - (file_size % 16) + 16;
     char plain[file_size+padding];
     char padding_char[3] = "  ";
+    int N = (file_size+padding)/16;
 
 	std::string text;
 	if(!in_file.is_open())
@@ -67,7 +73,8 @@ int main() {
     checkCudaErrors(cudaMemcpy(plain_gpu, plain, sizeof(uint8_t)*(file_size+padding), cudaMemcpyHostToDevice));
     
     checkCudaErrors(cudaEventRecord(kernel_start, 0));
-    ecb_encrypt_kernel<<<1, (file_size+padding)/16>>>(plain_gpu, out_gpu, key_gpu);
+
+    ecb_encrypt_kernel<<<(N+63)/64, 64>>>(plain_gpu, out_gpu, key_gpu, N);
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaEventRecord(kernel_stop, 0));
 
@@ -82,7 +89,7 @@ int main() {
     // }
     
 	std::ofstream out_file;
-    out_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/encriptECB/data/encrypted.txt", std::ios::binary);
+    out_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/aes_project/AES_CUDA/encriptECB/data/encrypted.txt", std::ios::binary);
 
     std::cout<<"\n"<<"padding is "<<padding_char[0]<<padding_char[1]<<", full file size is "<<file_size+padding<<"\n";
     // out_file.write(padding_char, 2);
