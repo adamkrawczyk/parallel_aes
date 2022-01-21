@@ -3,19 +3,25 @@
 
 __global__
 void decryptECB(state_type in[IN_LEN], state_type out[OUT_LEN],
-		w_type key[KEY_LEN]) {
+		w_type key[KEY_LEN], int size) {
 	w_type w[KEY_ROUND];
 	keyExpansion(key, w);
-	invCipher(in+threadIdx.x*16, out+threadIdx.x*16, w);
+    int idx = threadIdx.x+blockIdx.x*blockDim.x;
+    if (idx < size)
+    {
+
+	    invCipher(in+idx*16, out+idx*16, w);
+    }
 }
 
 int main() {
     std::ifstream in_file;
-	in_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/decryptECB/data/encrypted.txt", std::ios::binary);
-    std::size_t file_size = std::experimental::filesystem::file_size("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/decryptECB/data/encrypted.txt");
+	in_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/aes_project/AES_CUDA/decryptECB/data/encrypted.txt", std::ios::binary);
+    std::size_t file_size = std::experimental::filesystem::file_size("/home/silver/My-projects/CUDA/samples/0_Simple/aes_project/AES_CUDA/decryptECB/data/encrypted.txt");
     // int padding = 16-(file_size % 16);
     // std::cout<<"padding is "<<padding<<"\n";
     char encrypted[file_size];
+    int N = file_size/16;
 
 	std::string text;
 	if(!in_file.is_open())
@@ -62,7 +68,7 @@ int main() {
     checkCudaErrors(cudaMemcpy(key_gpu, key, sizeof(uint8_t)*32, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(encrypted_gpu, encrypted, sizeof(uint8_t)*(file_size), cudaMemcpyHostToDevice));
 
-	decryptECB<<<1, file_size/16>>>(encrypted_gpu, out_gpu, key_gpu);
+	decryptECB<<<(N+63)/64, 64>>>(encrypted_gpu, out_gpu, key_gpu, N);
 
     checkCudaErrors(cudaGetLastError());
     
@@ -82,7 +88,7 @@ int main() {
     int padding = (int)out[file_size-1];
     std::cout<<"padding is "<<padding<<"\n";
     std::ofstream out_file;
-    out_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/project/AES_CUDA/decryptECB/data/plain.txt", std::ios::binary);
+    out_file.open("/home/silver/My-projects/CUDA/samples/0_Simple/aes_project/AES_CUDA/decryptECB/data/plain.txt", std::ios::binary);
     out_file.write((char *)out, file_size-padding);
     out_file.close();
     checkCudaErrors(cudaEventSynchronize(stop));
