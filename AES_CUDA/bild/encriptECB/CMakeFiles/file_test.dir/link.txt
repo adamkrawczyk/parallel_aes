@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/file_test.dir/sources/test_bin_file.cpp.o  -o file_test  -lstdc++fs 
