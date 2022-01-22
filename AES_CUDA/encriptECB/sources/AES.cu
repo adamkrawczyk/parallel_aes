@@ -117,7 +117,6 @@ void mixColumns(state_type state[Nb][Nb]) {
 	state_type r[Nb];
 	state_type a[Nb];
 	state_type b[Nb];
-	// state_type h;
 
 	#pragma unroll
 	for (int i = 0; i < Nb; i++) {
@@ -126,14 +125,12 @@ void mixColumns(state_type state[Nb][Nb]) {
 		{
             r[j] = state[i][j];
 		}
-        // printf("r: %d, %d, %d, %d,\n", r[0], r[1], r[2], r[3]);
 
 		//Rijndael_MixColumns https://en.wikipedia.org/wiki/Rijndael_MixColumns
 		#pragma unroll
 		for (int c = 0; c < 4; c++) {
 			a[c] = r[c];
 			b[c] = (r[c] << 1) ^ (0x1B * (1 & (r[c] >> 7)));
-            // printf("a= %d, b= %d\n", a[c], b[c]);
 		}
 
 		r[0] = b[0] ^ a[3] ^ a[2] ^ b[1] ^ a[1];
@@ -141,23 +138,11 @@ void mixColumns(state_type state[Nb][Nb]) {
 		r[2] = b[2] ^ a[1] ^ a[0] ^ b[3] ^ a[3];
 		r[3] = b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0];
 
-        // printf("r_list: %d, %d, %d, %d\n", r[0], r[1], r[2], r[3]);
 		#pragma unroll
 		for(int j = 0; j < Nb; j++)
 		{
-            // printf("mixColumns: %d\n", r[j]);
 			state[i][j] = r[j];
 		}
-        // printf("next i\n");
-        // printf("state: ");
-        // for (int k = 0; k<Nb; k++)
-        // {
-        //     for (int l =0; l < Nb; l++)
-        //     {
-        //         printf("%d ", state[k][l]);
-        //     }
-        // }
-        // printf("\n");
 
 	}
 }
@@ -199,15 +184,6 @@ void cipher(state_type in[IN_LEN], state_type out[OUT_LEN],
 	for (int round = 1; round <= Nr - 1; round++) {
 		subBytes(state);
 		shiftRows(state);
-        // printf("state: ");
-        // for (int i = 0; i<Nb; i++)
-        // {
-        //     for (int j =0; j < Nb; j++)
-        //     {
-        //         printf("%d ", state[i][j]);
-        //     }
-        // }
-        // printf("\n");
 		mixColumns(state);
 		addRoundKey(state, (w + round * Nb * Nb));
 	}
@@ -217,27 +193,9 @@ void cipher(state_type in[IN_LEN], state_type out[OUT_LEN],
 	addRoundKey(state, (w + Nr * Nb * Nb));
 
 	arrayTransformTwoDim(out, state);
-
-    // printf(" out: ");
-    // for (int i = 0; i<Nb*Nb; i++)
-	// {
-    //     printf("%d ", out[i]);
-	// }
-    // printf("\n");
-
 }
 
 __device__
-void encriptECB(state_type in[IN_LEN], state_type out[OUT_LEN],
-		w_type w[KEY_ROUND]) {
-// #pragma HLS PIPELINE
-	// w_type w[KEY_ROUND];
-	// keyExpansion(key, w);
-    // printf("Expanded key: ");
-    // for (int i = 0; i<KEY_ROUND; i++)
-	// {
-    //     printf("%d ", w[i]);
-	// }
-	// printf("\n");
+void encriptECB(state_type in[IN_LEN], state_type out[OUT_LEN],	w_type w[KEY_ROUND]) {
 	cipher(in, out, w);
 }
