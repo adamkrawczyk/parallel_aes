@@ -3,7 +3,7 @@
 ## Build 
 
 ```bash
-cd AES_KRYS/AES_CPP/
+cd parallel_aes/AES_CPP/
 mkdir build && cd build
 cmake ..
 make 
