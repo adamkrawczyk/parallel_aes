@@ -5,8 +5,135 @@ static void ecb_encrypt_kernel(state_type* in, state_type* out, w_type* key, int
 {
     int idx = threadIdx.x+blockIdx.x*blockDim.x;
     if (idx < size){
+        state_type state[Nb][Nb];
 
-        encriptECB(in+idx*16, out+idx*16, key);
+        // arrayTransformOneDim(in+idx*16, state);
+        #pragma unroll
+        for (int i = 0; i < Nb; i++) {
+            #pragma unroll
+            for (int j = 0; j < Nb; j++) {
+                state[i][j] = in[j + Nb * i + idx*16];
+            }
+        }
+        
+        
+        // addRoundKey(state, key);
+        #pragma unroll
+        for (int j = 0; j < Nb; j++) {
+            #pragma unroll
+            for (int i = 0; i < Nb; i++) {
+                state[j][i] = state[j][i] ^ key[i + Nb * j]; //"w" pseudo conversion to a 2-dimensional array
+            }
+
+        }
+
+
+        #pragma unroll
+        for (int round = 1; round <= Nr - 1; round++) {
+            // subBytes(state);
+            #pragma unroll
+            for (int i = 0; i < Nb; i++) {
+                #pragma unroll
+                for (int j = 0; j < Nb; j++) {
+                    state[j][i] = sbox[state[j][i]];
+                }
+            }
+            // shiftRows(state);
+            #pragma unroll
+            for (int numberOfShifts = 0; numberOfShifts < Nb; numberOfShifts++) {
+                #pragma unroll
+                for (int j = 0; j < numberOfShifts; j++) {
+                    state_type tmp = state[0][numberOfShifts];
+                    #pragma unroll
+                    for (int i = 0; i < Nb - 1; i++) {
+                        state[i][numberOfShifts] = state[i + 1][numberOfShifts];
+                    }
+                    state[Nb - 1][numberOfShifts] = tmp;
+                }
+            }
+            // mixColumns(state);
+            state_type r[Nb];
+            state_type a[Nb];
+            state_type b[Nb];
+
+            #pragma unroll
+            for (int i = 0; i < Nb; i++) {
+                #pragma unroll
+                for(int j = 0; j < Nb; j++)
+                {
+                    r[j] = state[i][j];
+                }
+
+                //Rijndael_MixColumns https://en.wikipedia.org/wiki/Rijndael_MixColumns
+                #pragma unroll
+                for (int c = 0; c < 4; c++) {
+                    a[c] = r[c];
+                    b[c] = (r[c] << 1) ^ (0x1B * (1 & (r[c] >> 7)));
+                }
+
+                r[0] = b[0] ^ a[3] ^ a[2] ^ b[1] ^ a[1];
+                r[1] = b[1] ^ a[0] ^ a[3] ^ b[2] ^ a[2];
+                r[2] = b[2] ^ a[1] ^ a[0] ^ b[3] ^ a[3];
+                r[3] = b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0];
+
+                #pragma unroll
+                for(int j = 0; j < Nb; j++)
+                {
+                    state[i][j] = r[j];
+                }
+
+            }
+            // addRoundKey(state, (key + round * Nb * Nb));
+            #pragma unroll
+            for (int j = 0; j < Nb; j++) {
+                #pragma unroll
+                for (int i = 0; i < Nb; i++) {
+                    state[j][i] = state[j][i] ^ key[i + Nb * j + round*Nb*Nb]; //"w" pseudo conversion to a 2-dimensional array
+                }
+        
+            }
+        }
+
+        // subBytes(state);
+        #pragma unroll
+        for (int i = 0; i < Nb; i++) {
+            #pragma unroll
+            for (int j = 0; j < Nb; j++) {
+                state[j][i] = sbox[state[j][i]];
+            }
+        }
+        // shiftRows(state);
+        #pragma unroll
+        for (int numberOfShifts = 0; numberOfShifts < Nb; numberOfShifts++) {
+            #pragma unroll
+            for (int j = 0; j < numberOfShifts; j++) {
+                state_type tmp = state[0][numberOfShifts];
+                #pragma unroll
+                for (int i = 0; i < Nb - 1; i++) {
+                    state[i][numberOfShifts] = state[i + 1][numberOfShifts];
+                }
+                state[Nb - 1][numberOfShifts] = tmp;
+            }
+        }
+        // addRoundKey(state, (key + Nr * Nb * Nb));
+        #pragma unroll
+        for (int j = 0; j < Nb; j++) {
+            #pragma unroll
+            for (int i = 0; i < Nb; i++) {
+                state[j][i] = state[j][i] ^ key[i + Nb * j+Nr * Nb * Nb]; //"w" pseudo conversion to a 2-dimensional array
+            }
+    
+        }
+
+        // arrayTransformTwoDim(out+idx*16, state);
+        #pragma unroll
+        for (int i = 0; i < Nb; i++) {
+            #pragma unroll
+            for (int j = 0; j < Nb; j++) {
+                out[j + Nb * i+idx*16] = state[i][j];
+            }
+        }
+        // encriptECB(in+idx*16, out+idx*16, key);
     }
 }
 
